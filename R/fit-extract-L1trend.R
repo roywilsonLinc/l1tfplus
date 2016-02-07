@@ -34,34 +34,34 @@
 #'
 #'@export
 l1trend <- function(y.v,prop,sens=100,max.length=5,max.prop.na = 0.2){
-  
+
   #determine proportion of NAs
   prop.na <-
     length(y.v[is.na(y.v)==TRUE])/length(y.v)
 
-  if(prop.na>0.2)stop("Proportion of Detected NAs is > max.prop.na")
-  
+  if(prop.na > max.prop.na)stop("Proportion of Detected NAs is > max.prop.na")
+
   #process series
   y.proc.v <-
     na.locf(na.locf(na.approx(y.v,na.rm=FALSE),fromLast=TRUE,na.rm=FALSE))
 
   #Fit L1 regularised model
-  
+
   l1tf.out <- l1tf(y.proc.v,prop=prop)
-  
+
   #Create vector of differences
   l1tf.out.diff.v <- c(diff(l1tf.out)[1],diff(l1tf.out))
-  
+
   #Create matrix with index and differences
   dat.m <- matrix(c(1:length(l1tf.out.diff.v),l1tf.out.diff.v),
                   nrow=length(l1tf.out.diff.v),ncol=2,byrow=FALSE)
 
   #create difference vector and find change points
   diff2.v <- c(0,diff(dat.m[,2]))
-  
+
   #Find change-points
   quartiles <-
-    quantile(diff2.v,probs=c(0.25,0.5,0.75))
+    quantile(diff2.v,probs=c(0.25,0.5,0.75),na.rm=TRUE)
 
   iqr <- quartiles[3]-quartiles[1]
   med <- quartiles[2]
@@ -80,13 +80,13 @@ l1trend <- function(y.v,prop,sens=100,max.length=5,max.prop.na = 0.2){
 
   if(length(cp.v)>0){
     #Find real change-points
-    cp2.v <- rep(NA,length=(dim(breaks.comb)[1]-1))  
-    
+    cp2.v <- rep(NA,length=(dim(breaks.comb)[1]-1))
+
   for(i in 1:(dim(breaks.comb)[1]-1)){
     cp.grp.tmp <- cp.m[cp.m[,1] >= (breaks.comb)[i,1]&(cp.m[,1] < breaks.comb[i,2]),,drop=FALSE]
     cp2.v[i] <- cp.grp.tmp[which(abs(cp.grp.tmp[,3])==max(abs(cp.grp.tmp[,3]))),2]-2
   }}else{cp2.v <- NULL}
-  
+
   cuts.v <- c(0,cp2.v,length(diff2.v))
   start.v <- cuts.v[-length(cuts.v)]+1
   end.v <- cuts.v[-1]
@@ -94,7 +94,7 @@ l1trend <- function(y.v,prop,sens=100,max.length=5,max.prop.na = 0.2){
   centers.v <- round((cuts.v[-1]-cuts.v[-length(cuts.v)])/2)+cuts.v[-length(cuts.v)]
 
   summary.df <- data.frame(start.v,end.v,dat.m[centers.v,2],(end.v-start.v+1))
-  
+
   names(summary.df) <- c("start","end","grad","length")
 
   summary.df$segment <- rev(1:dim(summary.df)[1])

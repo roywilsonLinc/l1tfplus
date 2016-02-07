@@ -1,6 +1,6 @@
 Package: l1tfplus
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Returns useful summary and plot objects from L1 filtering
 Version: 0.1
 Date: 2015-12-14
 Author: Who wrote it
@@ -9,3 +9,5 @@ Description: More about what it does (maybe more than one line)
 License: What license is it under?
 LazyData: TRUE
 RoxygenNote: 5.0.1
+
+
